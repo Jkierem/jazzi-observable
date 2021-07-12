@@ -2,11 +2,11 @@ node_modules/
 dist/
 coverage/
 
-./index.js
-./operators.js
-./schedulers.js
-./constructors.js
-./index.d.ts
-./operators.d.ts
-./schedulers.d.ts
-./constructors.d.ts
+index.js
+operators.js
+schedulers.js
+constructors.js
+index.d.ts
+operators.d.ts
+schedulers.d.ts
+constructors.d.ts
