@@ -157,11 +157,11 @@ const Observable = Union({
     interval(n,fn=x=>x){
       return this.Observable(sub => {
         let i = 0
-        const id = window.setInterval(() => {
+        const id = setInterval(() => {
           sub.next(fn(i))
           i++;
         },n)
-        return () => window.clearInterval(id)
+        return () => clearInterval(id)
       })
     }
   },

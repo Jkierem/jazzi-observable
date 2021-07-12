@@ -8,8 +8,7 @@ const createWebpackConfig = (input) => {
         entry: `./src/Observable/${input}.js`,
         output: {
           path: path.resolve(__dirname),
-          filename: `${input}.js`,
-          libraryTarget: 'commonjs2'
+          filename: `${input}.js`
         },
         experiments: {
           outputModule: true,
