@@ -4139,10 +4139,10 @@ istanbul-reports@^3.0.2:
     html-escaper "^2.0.0"
     istanbul-lib-report "^3.0.0"
 
-jazzi@^1.4.5:
-  version "1.4.5"
-  resolved "https://registry.yarnpkg.com/jazzi/-/jazzi-1.4.5.tgz#46c64913ebdf602820ccd5c3a755df146fbf05fc"
-  integrity sha512-Xml/CMmqu0/IBGL5gDGmF5JJbgdHRQ0X9dOxIz1dQDAuMhnPfYkcmilxtyuNOjLFEr141yw/06T4ym5Y2vlH3A==
+jazzi@^1.5.2:
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/jazzi/-/jazzi-1.5.2.tgz#fa61895e8365dfdca6e15ff2885dd87b5443f14c"
+  integrity sha512-Tsk1BP7PR7ZE+Z1SiIxau2RMjKheVnKn+3MWuTO9VxWA8sNR/sUJY/0sbVm1yNAdIDNUzldncAK3vtdiSCLLoQ==
   dependencies:
     ramda "0.27.0"
 

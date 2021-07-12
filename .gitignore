@@ -5,3 +5,6 @@ coverage/
 ./index.js
 ./operators.js
 ./schedulers.js
+./index.d.ts
+./operators.d.ts
+./schedulers.d.ts

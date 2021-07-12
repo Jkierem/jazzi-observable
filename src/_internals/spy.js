@@ -1,4 +1,5 @@
 import equals from 'ramda/src/equals'
+import prop from 'ramda/src/prop'
 
 /* istanbul ignore next : spy works believe me*/
 export const Spy = (fn = x => x) => {

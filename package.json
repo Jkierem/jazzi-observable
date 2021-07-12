@@ -2,17 +2,22 @@
     "name": "jazzi-observable",
     "version": "1.0.0",
     "main": "index.js",
-    "module": "dist/index.js",
     "author": "Juan Gomez",
     "license": "MIT",
     "private": false,
+    "types": "./types/index.d.ts",
     "files": [
         "index.js",
+        "index.d.ts",
         "operators.js",
-        "schedulers.js"
+        "operators.d.ts",
+        "schedulers.js",
+        "schedulers.d.ts",
+        "constructors.js",
+        "constructors.d.ts"
     ],
     "dependencies": {
-        "jazzi": "^1.4.5",
+        "jazzi": "^1.5.2"
     },
     "devDependencies": {
         "@babel/cli": "^7.13.14",

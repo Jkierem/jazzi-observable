@@ -79,11 +79,7 @@ const ObservableType = () => (cases,globals) => {
 
     cases.Observable.prototype.auditTime = function(t){
       return this.audit(new cases.Observable(sub => {
-        let i = 0
-        const id = window.setInterval(() => {
-          sub.next(fn(i))
-          i++;
-        },n)
+        const id = window.setInterval(() => sub.next(),t)
         return () => window.clearInterval(id)
       }))
     }
@@ -392,6 +388,10 @@ const ObservableType = () => (cases,globals) => {
 
     cases.Observable.prototype.sync = function(){
       return new cases.Observable(getInternal(this.get()), syncScheduler)
+    }
+
+    cases.Observable.prototype.mapTo = function(value){
+      return this.map(() => value)
     }
 }
 

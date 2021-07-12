@@ -1,10 +1,43 @@
 const { series, watch } = require("gulp")
-const { unlink } = require("fs").promises
-
+const { unlink, copyFile } = require("fs").promises
+const path = require('path');
 const webpack = require("webpack")
-const observableConfig = require("./webpack-observable.config")
-const operatorsConfig = require("./webpack-operators.config")
-const schedulersConfig = require("./webpack-schedulers.config")
+
+const createWebpackConfig = (input) => {
+    return {
+        entry: `./src/Observable/${input}.js`,
+        output: {
+          path: path.resolve(__dirname),
+          filename: `${input}.js`,
+          libraryTarget: 'commonjs2'
+        },
+        experiments: {
+          outputModule: true,
+        },
+        devtool: false,
+        module: {
+          rules: [
+            {
+              test: /\.js$/,
+              use: 'babel-loader',
+              exclude: /node_modules/
+            }
+          ]
+        }
+    };
+}
+
+const sourceFiles = [
+    "index",
+    "operators",
+    "schedulers",
+    "constructors"
+]
+
+const js = x => `${x}.js`
+const dts = x => `${x}.d.ts`
+const fromRoot = x => `./${x}`
+const fromTypes = x => `./types/${x}`
 
 const TaskType = {
     Dev: "Dev",
@@ -20,16 +53,26 @@ const tryUnlink = async (path) => {
     }
 }
 
-async function clean(cb){
-    await tryUnlink("./index.js");
-    await tryUnlink("./operators.js");
-    await tryUnlink("./schedulers.js");
-    cb()
+const tryCopy = async (input,output) => {
+    try {
+        await copyFile(input,output);
+        console.log(`Copied ${input} to ${output}`)
+    } catch {
+        console.warn(`Could not copy ${input} to ${output}`)
+    }
+}
+
+async function clean(){
+    const files = sourceFiles
+        .flatMap(file => [ js(file), dts(file) ])
+        .map(fromRoot)
+        .map(tryUnlink);
+    await Promise.all(files);
 }
 
 const dev = cfg => ({ ...cfg, mode: "development", devtool: 'inline-source-map'})
 const prod = cfg => ({ ...cfg, mode: "production" })
-const webpackTask = (type,config) => {
+const webpackTask = (type) => (config) => {
     const webpackConfig = type === TaskType.Prod ? prod(config) : dev(config)
     return new Promise((resolve,reject) => {
         webpack(webpackConfig ,(err, stats) => { 
@@ -47,11 +90,25 @@ const webpackTask = (type,config) => {
     })
 }
 
+const compileFiles = async (type) => {
+    const files = sourceFiles
+        .map(createWebpackConfig)
+        .map(webpackTask(type))
+    await Promise.all(files)
+}
+
+const copyTypings = async () => {
+    const files = sourceFiles
+        .map(dts)
+        .map(def => [fromTypes(def), fromRoot(def)])
+        .map(([src,dst]) => tryCopy(src,dst));
+    await Promise.all(files);
+}
+
 function build(type){
     return async function buildingLib(){
-        await webpackTask(type,observableConfig)
-        await webpackTask(type,operatorsConfig)
-        await webpackTask(type,schedulersConfig)
+        await compileFiles(type)
+        await copyTypings()
     }
 }
 
