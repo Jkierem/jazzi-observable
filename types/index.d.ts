@@ -2,7 +2,7 @@ export declare type Scheduler = {
     runTask: (fn: () => void) => void;
 }
 
-export declare type Subscription = {
+export declare type Subscription = (() => void) & {
     unsubscribe: () => void;
 }
 

@@ -24,7 +24,9 @@ const ObservableType = () => (cases,globals) => {
         observer = next;
       }
 
-      return this.get()({...identityObserver,...observer})
+      const unsub = this.get()({...identityObserver,...observer})
+      unsub.unsubscribe = unsub
+      return unsub
     }
   
     cases.Observable.prototype.sequence = function(observable){
