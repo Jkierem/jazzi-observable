@@ -6,3 +6,4 @@ export const fromArray = (...args) => Observable.fromArray(...args);
 export const fromEvent = (...args) => Observable.fromEvent(...args);
 export const fromPromise = (...args) => Observable.fromPromise(...args);
 export const interval = (...args) => Observable.interval(...args);
+export const pure = (...args) => Observable.pure(...args);

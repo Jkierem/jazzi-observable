@@ -30,3 +30,4 @@ export const bind = createOperator("bind");
 export const chain = createOperator("chain");
 export const flatMap = createOperator("flatMap");
 export const effect = createOperator("effect");
+export const peak = createOperator("peak");

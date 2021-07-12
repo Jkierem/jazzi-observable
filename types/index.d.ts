@@ -60,7 +60,7 @@ declare interface  Observable<A> {
      * Returns a new observable that collects all the next calls in an array, calling next
      * with the array when the observable completes. *The source observable must complete*
      */
-    collect(): Observable<A>;
+    collect(): Observable<A[]>;
     /**
      * Returns a new observable with an auditor. The auditor defines when the observer gets notified
      * with the latest value of the audited observable. This function makes more sense if both 
@@ -74,17 +74,17 @@ declare interface  Observable<A> {
      */
     auditTime(t: number): Observable<A>;
     /**
-     * Returns a new observable that runs an effect on next without altering the value. Used to run effects
+     * Returns a new observable that runs an effect everytime it emits without altering the value. Used to run effects
      * @param eff function to call on next
      */
     tap(eff: (data: A) => void): Observable<A>;
     /**
-     * Returns a new observable that runs an effect on next without altering the value. Used to run effects
+     * Returns a new observable that runs an effect everytime it emits without altering the value. Used to run effects
      * @param eff function to call on next
      */
     effect(eff: (data: A) => void): Observable<A>;
     /**
-     * Returns a new observable that runs an effect on next without altering the value. Used to run effects
+     * Returns a new observable that runs an effect everytime it emits without altering the value. Used to run effects
      * @param eff function to call on next
      */
     peak(eff: (data: A) => void): Observable<A>;
@@ -231,33 +231,17 @@ declare const Observable: {
     /**
      * Create an observable from a subscribe function. The function will be called
      * when subscribe is called on the observable. If it returns a cleanup function,
-     * it will be called on unsubscribe. Uses the default sync scheduler
+     * it will be called on unsubscribe. The default scheduler is sync scheduler. 
      * @param fn 
      */
-    from<T>(fn: (observer: Observer<T>) => void): Observable<T>;
+    from<T>(fn: (observer: Observer<T>) => void, scheduler?: Scheduler): Observable<T>;
     /**
      * Create an observable from a subscribe function. The function will be called
      * when subscribe is called on the observable. If it returns a cleanup function,
-     * it will be called on unsubscribe.
-     * @param fn 
-     * @param scheduler 
-     */
-    from<T>(fn: (observer: Observer<T>) => void, scheduler: Scheduler): Observable<T>;
-    /**
-     * Create an observable from a subscribe function. The function will be called
-     * when subscribe is called on the observable. If it returns a cleanup function,
-     * it will be called on unsubscribe. Uses the default sync scheduler
+     * it will be called on unsubscribe. The default scheduler is sync scheduler.
      * @param fn 
      */
-    pure<T>(fn: (observer: Observer<T>) => void): Observable<T>;
-    /**
-     * Create an observable from a subscribe function. The function will be called
-     * when subscribe is called on the observable. If it returns a cleanup function,
-     * it will be called on unsubscribe.
-     * @param fn 
-     * @param scheduler 
-     */
-    pure<T>(fn: (observer: Observer<T>) => void, scheduler: Scheduler): Observable<T>;
+    pure<T>(fn: (observer: Observer<T>) => void, scheduler?: Scheduler): Observable<T>;
     /**
      * Creates an observable from a promise. Triggers next when the promise resolves and
      * then calls complete. Triggers an error when the promise is rejected and then calls
@@ -269,15 +253,9 @@ declare const Observable: {
      * Creates an observable from the passed array. Will call next with each item of the array
      * @param xs 
      */
-    fromArray<T>(xs: T[]): Observable<T>;
+    fromArray<T>(xs: T[], scheduler?: Scheduler): Observable<T>;
     /**
-     * Creates an observable from the passed array. Will call next with each item of the array
-     * @param xs 
-     * @param scheduler
-     */
-    fromArray<T>(xs: T[], scheduler: Scheduler): Observable<T>;
-    /**
-     * Creates an observable from an event. Receives the event target and target name. 
+     * Creates an observable from an event. Receives the event target and event name. 
      * @param target 
      * @param event 
      */
@@ -288,15 +266,7 @@ declare const Observable: {
      * recieves a mapping function to map the values.
      * @param time 
      */
-    interval(time: number): Observable<number>;
-    /**
-     * Creates an observable that emits values on an interval with an increasing count
-     * starting from 0. The time between triggers is the passed argument. Optionally,
-     * recieves a mapping function to map the values.
-     * @param time
-     * @param mapFn 
-     */
-    interval<T>(time: number, mapFn: (i: number) => T): Observable<T>;
+    interval<T>(time: number, mapFn?: (i: number) => T): Observable<T>;
     operators: typeof operators,
     schedulers: typeof schedulers,
 }
