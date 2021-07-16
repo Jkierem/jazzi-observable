@@ -39,6 +39,7 @@ describe("Observable", () => {
       expect(nextSpy.called).toBeFalsy();
       expect(errorSpy.called).toBeFalsy();
     })
+
     it("should not call next or complete if error is called before", () => {
       const {
         run,
@@ -61,19 +62,22 @@ describe("Observable", () => {
       unsub()
       expect(nextSpy.called).toBeFalsy()
     })
+
     it("should not call error if unsubscribe is called before",() => {
       const { run, spies: { errorSpy } } = createMockObservable(() => Observable.from(sub => Promise.resolve().then(sub.error)))
       const unsub = run()
       unsub()
       expect(errorSpy.called).toBeFalsy()
     })
+
     it("should not call complete if unsubscribe is called before",() => {
       const { run, spies: { completeSpy } } = createMockObservable(() => Observable.from(sub => Promise.resolve().then(sub.complete)))
       const unsub = run()
-      unsub()
+      unsub.unsubscribe()
       expect(completeSpy.called).toBeFalsy()
     })
   })
+
   describe("constructors", () => {
     it("should construct from function", () => {
       const {
@@ -97,6 +101,7 @@ describe("Observable", () => {
       expect(completeSpy.callCount).toBe(1);
       expect(errorSpy.called).toBeFalsy();
     })
+
     it("should construct from array", () => {
       const {
         run,
@@ -114,6 +119,34 @@ describe("Observable", () => {
 
       expect(completeSpy.callCount).toBe(1);
       expect(errorSpy.called).toBeFalsy();
+    })
+
+    it("should create an observable that throws", () => {
+      const {
+        run,
+        spies: {
+          nextSpy, completeSpy, errorSpy
+        }
+      } = createMockObservable(() => Observable.throwError(42))
+      run()
+      expect(errorSpy.calledWith(42)).toBeTruthy()
+      expect(nextSpy.called).toBeFalsy()
+      expect(completeSpy.called).toBeFalsy()
+    })
+
+    it("should create from an interval", () => {
+      jest.useFakeTimers()
+      const obs = Observable.interval(500, x => x + 1)
+      const spy = Spy()
+      const unsub = obs.subscribe(spy)
+      jest.advanceTimersByTime(1000)
+      expect(setInterval).toHaveBeenCalled()
+      expect(spy.callCount).toBe(2)
+      expect(spy.calledWith(1)).toBeTruthy()
+      expect(spy.calledWith(2)).toBeTruthy()
+      unsub()
+      expect(clearInterval).toHaveBeenCalled()
+      jest.useRealTimers()
     })
   })
 
@@ -181,6 +214,27 @@ describe("Observable", () => {
         const unsub = sequenced.subscribe({ next: nextSpy })
         unsub()
       })
+
+      it("catchError -> should subscribe to new observable, calling both unsubscribes", () => {
+        expect.assertions(3);
+        const unsubSpy = Spy()
+        const original = Observable.from((sub) => {
+          sub.error(42)
+          return unsubSpy
+        });
+        let thrown, other;
+        const otherObservable = original.catchError((err,ref) => {
+          thrown = err;
+          other = ref;
+          return original
+        })
+
+        const unsub = otherObservable.subscribe()
+        unsub()
+        expect(unsubSpy.callCount).toBe(2)
+        expect(thrown).toBe(42)
+        expect(other).toBe(original)
+      })
     })
 
     describe("Functor Observable", () => {
@@ -219,6 +273,60 @@ describe("Observable", () => {
         expect(nextSpy.callCount).toBe(2);
         expect(nextSpy.calledWith(2)).toBeTruthy();
         expect(nextSpy.calledWith(4)).toBeTruthy();        
+      })
+    })
+
+    describe("Thenable Observable", () => {
+      it("should resolve to first value on next", async () => {
+        const value = await Observable.of(42)
+        expect(value).toBe(42)
+      })
+
+      it("should resolve to undefined on complete", async () => {
+        const value = await Observable.from(({ complete }) => complete())
+        expect(value).toBe(undefined)
+      })
+
+      it("should reject to error on error", async () => {
+        await expect(Observable.throwError(42)).rejects.toBe(42)
+      })
+
+      it("should return a promise that resolves", async () => {
+        const value = await Observable.of(42).toPromise()
+        expect(value).toBe(42)
+      })
+
+      it("should return a promise that rejects", async () => {
+        await expect(Observable.throwError(42).toPromise()).rejects.toBe(42)
+      })
+
+      it("should call onresolve function", () => {
+        const resSpy = Spy()
+        const rejSpy = Spy()
+        Observable.of(42).then(resSpy,rejSpy)
+        expect(resSpy.calledWith(42)).toBeTruthy()
+        expect(rejSpy.called).toBeFalsy()
+      })
+
+      it("should call onreject function", () => {
+        const resSpy = Spy()
+        const rejSpy = Spy()
+        Observable.throwError(42).then(resSpy,rejSpy)
+        expect(rejSpy.calledWith(42)).toBeTruthy()
+        expect(resSpy.called).toBeFalsy()
+      })
+
+      it("should call onreject function using catch", () => {
+        const rejSpy = Spy()
+        Observable.throwError(42).catch(rejSpy)
+        expect(rejSpy.calledWith(42)).toBeTruthy()
+      })
+
+      it("should call onresolve once", () => {
+        const resSpy = Spy()
+        Observable.of(42,43,44).then(resSpy)
+        expect(resSpy.callCount).toBe(1)
+        expect(resSpy.calledWith(42)).toBeTruthy()
       })
     })
   })

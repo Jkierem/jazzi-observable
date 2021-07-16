@@ -1,4 +1,4 @@
-import { getInternal } from "../_internals"
+import { compose, getInternal, once, sequence } from "../_internals"
 import { asyncScheduler, asapScheduler, syncScheduler } from "./schedulers"
 
 const identityObserver = {
@@ -24,7 +24,7 @@ const ObservableType = () => (cases,globals) => {
         observer = next;
       }
 
-      const unsub = this.get()({...identityObserver,...observer})
+      const unsub = once(this.get()({...identityObserver,...observer}))
       unsub.unsubscribe = unsub
       return unsub
     }
@@ -394,6 +394,56 @@ const ObservableType = () => (cases,globals) => {
 
     cases.Observable.prototype.mapTo = function(value){
       return this.map(() => value)
+    }
+
+    cases.Observable.prototype.then = function(onRes, onRej){
+      const resolveOnce = once(onRes)
+      this.take(1).subscribe(resolveOnce,onRej,resolveOnce)
+    }
+
+    cases.Observable.prototype.cleanup = function(cleanup){
+      return new cases.Observable((sub) => {
+        const original = this.subscribe(getInternal(sub))
+        return sequence(original, () => cleanup(sub));
+      })
+    }
+
+    cases.Observable.prototype.after = function(after){
+      return new cases.Observable((sub) => {
+        const { next, error, complete: original } = getInternal(sub);
+        return this.subscribe({
+          next,
+          error,
+          complete: sequence(original, after)
+        })
+      })
+    }
+
+    cases.Observable.prototype.error = function(fn){
+      return new cases.Observable((sub) => {
+        const { next, error: original, complete } = getInternal(sub);
+        return this.subscribe({
+          next,
+          error: sequence(original,fn),
+          complete,
+        })
+      })
+    }
+
+    cases.Observable.prototype.catchError = function(fn){
+      return new cases.Observable((sub) => {
+        const { next, error, complete } = getInternal(sub);
+        let innerCleanup = x => x;
+        const outerCleanup = this.subscribe({
+          next,
+          error: (err) => {
+            error(err);
+            innerCleanup = fn(err,this).subscribe(getInternal(sub))
+          },
+          complete,
+        })
+        return sequence(innerCleanup,outerCleanup);
+      })
     }
 }
 

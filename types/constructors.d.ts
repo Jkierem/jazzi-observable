@@ -44,3 +44,12 @@ export declare const interval: typeof Observable.interval;
  * @param fn 
  */
 export declare const pure: typeof Observable.pure;
+/**
+ * Returns an observable that immediately throws
+ * @param err
+ */
+export declare const throwError: typeof Observable.throwError;
+/**
+ * Returns an observable that immediately completes
+ */
+export declare const complete: typeof Observable.complete;

@@ -23,18 +23,18 @@ declare interface  Observable<A> {
     /**
      * Subscribes to an observable starting its' excecution.
      */
-    run(observer: Observer<A>): Subscription;
-    run(next: (next: A) => void, error?: (e: Error) => void, complete?: () => void): Subscription;
+    run(observer?: Observer<A>): Subscription;
+    run(next?: (next: A) => void, error?: (e: any) => void, complete?: () => void): Subscription;
     /**
      * Subscribes to an observable starting its' excecution.
      */
-    unsafeRun(observer: Observer<A>): Subscription;
-    unsafeRun(next: (next: A) => void, error?: (e: Error) => void, complete?: () => void): Subscription;
+    unsafeRun(observer?: Observer<A>): Subscription;
+    unsafeRun(next?: (next: A) => void, error?: (e: any) => void, complete?: () => void): Subscription;
     /**
      * Subscribes to an observable starting its' excecution.
      */
-    subscribe(observer: Observer<A>): Subscription;
-    subscribe(next: (next: A) => void, error?: (e: Error) => void, complete?: () => void): Subscription;
+    subscribe(observer?: Observer<A>): Subscription;
+    subscribe(next?: (next: A) => void, error?: (e: any) => void, complete?: () => void): Subscription;
     /**
      * Returns a new observable that runs both observable in order.
      * @param nextObservable
@@ -138,6 +138,16 @@ declare interface  Observable<A> {
      */
     mergeAll(): A extends Observable<infer U> ? Observable<U> : never
     /**
+     * Returns a new flat observable that returns all the emitted values of the emitted observables. 
+     * Must be called on an observable of observables
+     */
+    flat(): A extends Observable<infer U> ? Observable<U> : never
+    /**
+     * Returns a new flat observable that returns all the emitted values of the emitted observables. 
+     * Must be called on an observable of observables
+     */
+    join(): A extends Observable<infer U> ? Observable<U> : never
+    /**
      * Returns a new observable that flattens all the observables created with `fn`
      * using mergeAll
      * @param fn 
@@ -217,6 +227,44 @@ declare interface  Observable<A> {
      * Returns a new observable with a sync scheduler
      */
     sync(): Observable<A>;
+    /**
+     * Returns a promise that resolves upon first next or complete event and rejects upon error event
+     */
+    toPromise(): Promise<A>;
+    /**
+     * Thenable interface of Observable. Limits the observable to 1 emition and then subscribes to the 
+     * observable using onResolve as next and complete handler (calling only one) and onReject as error handler
+     * @param onResolve 
+     * @param onReject 
+     */
+    then(onResolve: (a: A) => void, onReject: (err: any) => void): void;
+    /**
+     * Limits the observable to 1 emition and then subscribes to the observable using onReject as error handler
+     * @param onReject 
+     */
+    catch(onReject: (err: any) => void): void;
+    /**
+      * Returns a new observable that will call the passed function on unsubscribe, after the original unsubscribe callback if any.
+      * Receives the observer to trigger extra events on unsubscribe. It is still subject to normal observable contract constraints
+     * @param fn 
+     */
+    cleanup(fn: (observer: Observer<A>) => void): Observable<A>;
+    /**
+     * Returns a new observable that will call the passed function on complete, after the original complete callback if any.
+     * @param fn 
+     */
+    after(fn: () => void): Observable<A>;
+    /**
+     * Returns a new observable that will call the passed function on error, after the original error callback if any.
+     * @param fn 
+     */
+    error(fn: (e: any) => void): Observable<A>;
+    /**
+     * Returns a new observable that on error, will used to passed function run a new observable. The function receives the original 
+     * observable for retrying
+     * @param fn 
+     */
+    catchError(fn: (e: any, observable: Observable<A>) => void): Observable<A>;
 }
 
 import * as schedulers from './schedulers'
@@ -266,7 +314,17 @@ declare const Observable: {
      * recieves a mapping function to map the values.
      * @param time 
      */
+    interval(time: number): Observable<number>;
     interval<T>(time: number, mapFn?: (i: number) => T): Observable<T>;
+    /**
+     * Returns an observable that immediately throws
+     * @param err 
+     */
+    throwError(err: any): Observable<never>;
+    /**
+     * Returns an observable that immediately completes
+     */
+    complete(): Observable<never>;
     operators: typeof operators,
     schedulers: typeof schedulers,
 }

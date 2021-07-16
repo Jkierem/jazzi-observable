@@ -167,3 +167,35 @@ export declare const effect: <A>(fn: (a: A) => void) => Operator<A,A>;
  * @param eff function to call on next
  */
 export declare const peak: <A>(fn: (a: A) => void) => Operator<A,A>;
+/**
+ * Returns a new flat observable that returns all the emitted values of the emitted observables. 
+ * Must be called on an observable of observables
+ */
+export declare const flat: <A>() => Operator<Observable<A>,A>;
+/**
+ * Returns a new flat observable that returns all the emitted values of the emitted observables. 
+ * Must be called on an observable of observables
+ */
+export declare const join: <A>() => Operator<Observable<A>,A>;
+/**
+ * Returns a new observable that will call the passed function on unsubscribe, after the original unsubscribe callback if any.
+ * Receives the observer to trigger extra events on unsubscribe. It is still subject to normal observable contract constraints
+ * @param fn 
+ */
+export declare const cleanup: <A>(fn: (observer: Observer<A>) => void) => Operator<A,A>;
+/**
+ * Returns a new observable that will call the passed function on complete, after the original complete callback if any.
+ * @param fn 
+ */
+export declare const after: <A>(fn: () => void) => Operator<A,A>;
+/**
+ * Returns a new observable that will call the passed function on error, after the original error callback if any.
+ * @param fn 
+ */
+export declare const error: <A>(fn: (e: any) => void) => Operator<A,A>;
+/**
+ * Returns a new observable that on error, will used to passed function run a new observable. The function receives the original 
+ * observable for retrying
+ * @param fn 
+ */
+export declare const catchError: <A>(fn: (e: any, observable: Observable<A>) => void) => Operator<A,A>;

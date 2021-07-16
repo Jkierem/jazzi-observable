@@ -1,4 +1,4 @@
-import { Union, Functor, Filterable, Effect, Monad } from "jazzi"
+import { Union, Functor, Filterable, Effect, Monad, Thenable } from "jazzi"
 import { Internal } from "../_internals"
 import ObservableType from './type'
 import * as schedulers from './schedulers'
@@ -54,6 +54,8 @@ const createWrapper = (subFn,scheduler) => {
 const defs = {
   trivials: [],
   identities: [],
+  resolve: [],
+  reject: [],
   pure: "Observable",
   remove: {
     natural: true,
@@ -63,6 +65,11 @@ const defs = {
     chain: {
       Observable(fn){
         return this.mergeMap(fn)
+      }
+    },
+    join: {
+      Observable(){
+        return this.mergeAll();
       }
     },
     run: {
@@ -99,6 +106,11 @@ const defs = {
           })
         })
       }
+    },
+    toPromise: {
+      Observable(){
+        return new Promise((res,rej) => this.take(1).subscribe(res,rej,res))
+      }
     }
   }
 }
@@ -124,7 +136,8 @@ const Observable = Union({
     Functor(defs),
     Filterable(defs),
     Effect(defs),
-    Monad(defs)
+    Monad(defs),
+    Thenable(defs)
   ],
   config: {
     noHelpers: true
@@ -163,6 +176,12 @@ const Observable = Union({
         },n)
         return () => clearInterval(id)
       })
+    },
+    throwError(err){ 
+      return this.Observable(sub => sub.error(typeof err === "function" ? err() : err)) 
+    },
+    complete(){ 
+      return this.Observable(sub => sub.complete()) 
     }
   },
 })
