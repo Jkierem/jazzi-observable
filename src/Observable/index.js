@@ -1,4 +1,4 @@
-import { Union, Functor, Filterable, Effect, Monad, Thenable } from "jazzi"
+import { Union, Functor, Filterable, Tap, Monad, Thenable } from "jazzi"
 import { Internal } from "../_internals"
 import ObservableType from './type'
 import * as schedulers from './schedulers'
@@ -77,14 +77,6 @@ const defs = {
         return this.subscribe(...args)
       }
     },
-    effect: {
-      Observable(fn){
-        return this.map((x) => {
-          fn(x)
-          return x
-        })
-      }
-    },
     fmap: {
       Observable(fn){
         return Observable.Observable(sub => {
@@ -135,8 +127,8 @@ const Observable = Union({
     ObservableType(),
     Functor(defs),
     Filterable(defs),
-    Effect(defs),
     Monad(defs),
+    Tap({ trivials: ["Observable"] }),
     Thenable(defs)
   ],
   config: {

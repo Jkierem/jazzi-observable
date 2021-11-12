@@ -4139,12 +4139,10 @@ istanbul-reports@^3.0.2:
     html-escaper "^2.0.0"
     istanbul-lib-report "^3.0.0"
 
-jazzi@^1.5.2:
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/jazzi/-/jazzi-1.5.2.tgz#fa61895e8365dfdca6e15ff2885dd87b5443f14c"
-  integrity sha512-Tsk1BP7PR7ZE+Z1SiIxau2RMjKheVnKn+3MWuTO9VxWA8sNR/sUJY/0sbVm1yNAdIDNUzldncAK3vtdiSCLLoQ==
-  dependencies:
-    ramda "0.27.0"
+jazzi@latest:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/jazzi/-/jazzi-2.1.1.tgz#f89ebc4c27c9239b60ab3268d833be063358f725"
+  integrity sha512-86DISppSOI8SqMr5W5sKmIvpNPjzCCQXpYstn2EsVR0s/IQHZWsdWw+qxU0gAal8asT5uFn+UlGp9idSc2RfRA==
 
 jest-changed-files@^26.6.2:
   version "26.6.2"
@@ -5639,11 +5637,6 @@ querystringify@^2.1.1:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/querystringify/-/querystringify-2.2.0.tgz#3345941b4153cb9d082d8eee4cda2016a9aef7f6"
   integrity sha512-FIqgj2EUvTa7R50u0rGsyTftzjYmv/a3hO345bZNrqabNqjtgiDMgmo4mkUjd+nzU5oF3dClKqFIPUKybUyqoQ==
-
-ramda@0.27.0:
-  version "0.27.0"
-  resolved "https://registry.yarnpkg.com/ramda/-/ramda-0.27.0.tgz#915dc29865c0800bf3f69b8fd6c279898b59de43"
-  integrity sha512-pVzZdDpWwWqEVVLshWUHjNwuVP7SfcmPraYuqocJp1yo2U1R7P+5QAfDhdItkuoGqIBnBYrtPp7rEPqDn9HlZA==
 
 ramda@^0.27.1:
   version "0.27.1"

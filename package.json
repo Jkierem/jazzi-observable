@@ -5,6 +5,7 @@
     "author": "Juan Gomez",
     "license": "MIT",
     "private": false,
+    "types": "index.d.ts",
     "files": [
         "index.js",
         "index.d.ts",
@@ -16,7 +17,7 @@
         "constructors.d.ts"
     ],
     "dependencies": {
-        "jazzi": "^1.6.1"
+        "jazzi": "latest"
     },
     "devDependencies": {
         "@babel/cli": "^7.13.14",

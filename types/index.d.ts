@@ -2,8 +2,9 @@ export declare type Scheduler = {
     runTask: (fn: () => void) => void;
 }
 
-export declare type Subscription = (() => void) & {
-    unsubscribe: () => void;
+export declare interface Subscription {
+    (): void
+    unsubscribe(): void
 }
 
 export declare type Operator<T,U> = (inputObservable: Observable<T>) => Observable<U>;
@@ -78,11 +79,6 @@ declare interface  Observable<A> {
      * @param eff function to call on next
      */
     tap(eff: (data: A) => void): Observable<A>;
-    /**
-     * Returns a new observable that runs an effect everytime it emits without altering the value. Used to run effects
-     * @param eff function to call on next
-     */
-    effect(eff: (data: A) => void): Observable<A>;
     /**
      * Returns a new observable that runs an effect everytime it emits without altering the value. Used to run effects
      * @param eff function to call on next

@@ -1,4 +1,4 @@
-import { compose, getInternal, once, sequence } from "../_internals"
+import { getInternal, once, sequence } from "../_internals"
 import { asyncScheduler, asapScheduler, syncScheduler } from "./schedulers"
 
 const identityObserver = {
@@ -84,10 +84,6 @@ const ObservableType = () => (cases,globals) => {
         const id = window.setInterval(() => sub.next(),t)
         return () => window.clearInterval(id)
       }))
-    }
-  
-    cases.Observable.prototype.tap = function(eff){
-      return this.effect(eff)
     }
   
     cases.Observable.prototype.take = function(n){
