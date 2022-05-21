@@ -1,3 +1,5 @@
+import { Thenable, ThenableOf } from 'jazzi/dist/Union/thenable';
+
 export declare type Scheduler = {
     runTask: (fn: () => void) => void;
 }
@@ -20,7 +22,7 @@ declare type PartialEventTarget<T> = {
     removeEventListener: (event: string, handler: (e: T) => void) => void;
 }
 
-declare interface  Observable<A> {
+declare interface  Observable<A> extends Thenable<A, unknown> {
     /**
      * Subscribes to an observable starting its' excecution.
      */
@@ -228,17 +230,9 @@ declare interface  Observable<A> {
      */
     toPromise(): Promise<A>;
     /**
-     * Thenable interface of Observable. Limits the observable to 1 emition and then subscribes to the 
-     * observable using onResolve as next and complete handler (calling only one) and onReject as error handler
-     * @param onResolve 
-     * @param onReject 
+     * Returns a thenable object that resolves upon first next or complete event and rejects upon error event
      */
-    then(onResolve: (a: A) => void, onReject: (err: any) => void): void;
-    /**
-     * Limits the observable to 1 emition and then subscribes to the observable using onReject as error handler
-     * @param onReject 
-     */
-    catch(onReject: (err: any) => void): void;
+    toThenable(): ThenableOf<A, unknown>;
     /**
       * Returns a new observable that will call the passed function on unsubscribe, after the original unsubscribe callback if any.
       * Receives the observer to trigger extra events on unsubscribe. It is still subject to normal observable contract constraints

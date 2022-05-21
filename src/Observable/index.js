@@ -1,5 +1,5 @@
 import { Union, Functor, Filterable, Tap, Monad, Thenable } from "jazzi"
-import { Internal } from "../_internals"
+import { Internal, once } from "../_internals"
 import ObservableType from './type'
 import * as schedulers from './schedulers'
 import * as operators from './operators'
@@ -97,6 +97,19 @@ const defs = {
             error: (e) => sub.error(e)
           })
         })
+      }
+    },
+    toThenable: {
+      Observable(){
+        return {
+          then: (onRes, onRej) => {
+            const resolveOnce = once(onRes)
+            this.take(1).subscribe(resolveOnce, onRej, resolveOnce)
+          },
+          catch(onRej){
+            this.then(x => x, onRej)
+          }
+        }
       }
     },
     toPromise: {

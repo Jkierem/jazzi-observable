@@ -7,7 +7,7 @@ const identityObserver = {
     error: x => x,
 }
 
-const ObservableType = () => (cases,globals) => {
+const ObservableType = () => (cases,_globals) => {
     cases.Observable.prototype.pipe = function(...ops){
         return ops.reduce((observable,operator) => operator(observable),this)
     }
@@ -390,11 +390,6 @@ const ObservableType = () => (cases,globals) => {
 
     cases.Observable.prototype.mapTo = function(value){
       return this.map(() => value)
-    }
-
-    cases.Observable.prototype.then = function(onRes, onRej){
-      const resolveOnce = once(onRes)
-      this.take(1).subscribe(resolveOnce,onRej,resolveOnce)
     }
 
     cases.Observable.prototype.cleanup = function(cleanup){
