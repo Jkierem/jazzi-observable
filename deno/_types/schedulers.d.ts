@@ -1,4 +1,4 @@
-import type { Scheduler } from './'
+import type { Scheduler } from "./mod.ts"
 
 export const asyncScheduler: Scheduler;
 export const syncScheduler: Scheduler;

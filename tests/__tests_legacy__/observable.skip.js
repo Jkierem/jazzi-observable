@@ -1,5 +1,5 @@
-import Observable from "../Observable";
-import { Spy } from "../_internals/spy";
+import Observable from "../../src/Observable";
+import { Spy } from "../../src/_internals/spy";
 
 const createMockObservable = (creator) => {
   const nextSpy = Spy()

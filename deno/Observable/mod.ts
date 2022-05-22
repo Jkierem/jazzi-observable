@@ -1,8 +1,15 @@
-import { Union, Functor, Filterable, Tap, Monad, Thenable } from "jazzi"
-import { Internal, once } from "../_internals"
-import ObservableType from './type'
-import * as schedulers from './schedulers'
-import * as operators from './operators'
+import { Union, Functor, Filterable, Tap, Monad, Thenable } from "https://deno.land/x/jazzi@v3.0.4/mod.ts";
+import { Internal, once } from "../_internals/mod.ts";
+
+import ObservableType from "./type.ts";
+
+import * as schedulers from "./schedulers.ts";
+
+import * as operators from "./operators.ts";
+
+
+import type { Observable, ObservableRep } from "../_types/mod.ts";
+
 
 const { syncScheduler } = schedulers
 
@@ -63,23 +70,23 @@ const defs = {
   },
   overrides: {
     chain: {
-      Observable(fn){
+      Observable(this: Observable<any>, fn){
         return this.mergeMap(fn)
       }
     },
     join: {
-      Observable(){
+      Observable(this: Observable<any>){
         return this.mergeAll();
       }
     },
     run: {
-      Observable(...args){
+      Observable(this: Observable<any>,...args){
         return this.subscribe(...args)
       }
     },
     fmap: {
-      Observable(fn){
-        return Observable.Observable(sub => {
+      Observable(this: Observable<any>, fn){
+        return ObservableR.Observable(sub => {
           return this.subscribe({
             next: (x) => sub.next(fn(x)),
             complete: () => sub.complete(),
@@ -89,8 +96,8 @@ const defs = {
       }
     },
     filter: {
-      Observable(pred){
-        return Observable.Observable(sub => {
+      Observable(this: Observable<any>, pred){
+        return ObservableR.Observable(sub => {
           return this.subscribe({
             next: (x) => pred(x) && sub.next(x),
             complete: () => sub.complete(),
@@ -100,7 +107,7 @@ const defs = {
       }
     },
     toThenable: {
-      Observable(){
+      Observable(this: Observable<any>){
         return {
           then: (onRes, onRej) => {
             const resolveOnce = once(onRes)
@@ -113,14 +120,14 @@ const defs = {
       }
     },
     toPromise: {
-      Observable(){
-        return new Promise((res,rej) => this.take(1).subscribe(res,rej,res))
+      Observable(this: Observable<any>){
+        return new Promise((res,rej) => this.take(1).subscribe(res,rej,res as any))
       }
     }
   }
 }
 
-const fromArrayImpl = (self,xs,scheduler) => {
+const fromArrayImpl = (self: any, xs: any, scheduler?: any) => {
   return self.Observable(sub => {
     try {
       xs.forEach(x => sub.next(x))
@@ -131,7 +138,7 @@ const fromArrayImpl = (self,xs,scheduler) => {
   },scheduler)
 }
 
-const Observable = Union({
+const ObservableR: any = Union({
   name: "Observable",
   cases: {
     Observable: (fn,scheduler=syncScheduler) => createWrapper(fn,scheduler)
@@ -151,10 +158,10 @@ const Observable = Union({
     of(...xs){
       return fromArrayImpl(this,xs)
     },
-    from(fn,scheduler){
+    from(this: any, fn: any, scheduler?: any){
       return this.Observable(fn,scheduler)
     },
-    fromPromise(p){
+    fromPromise(this: any, p){
       return this.Observable(sub => {
         p
         .then(sub.next)
@@ -162,17 +169,17 @@ const Observable = Union({
         .finally(sub.complete)
       })
     },
-    fromArray(xs,scheduler){ 
+    fromArray(this: any, xs: any[],scheduler?: any){ 
        return fromArrayImpl(this,xs,scheduler)
     },
-    fromEvent(target,event){
+    fromEvent(this:any, target: any, event?: any){
       return this.Observable(sub => {
         const handler = e => sub.next(e)
         target.addEventListener(event,handler)
         return () => target.removeEventListener(event,handler)
       })
     },
-    interval(n,fn=x=>x){
+    interval(this: any, n: number, fn=x=>x){
       return this.Observable(sub => {
         let i = 0
         const id = setInterval(() => {
@@ -182,16 +189,16 @@ const Observable = Union({
         return () => clearInterval(id)
       })
     },
-    throwError(err){ 
+    throwError(this:any, err){ 
       return this.Observable(sub => sub.error(typeof err === "function" ? err() : err)) 
     },
-    complete(){ 
+    complete(this:any){ 
       return this.Observable(sub => sub.complete()) 
     }
   },
 })
 
-Observable.operators = operators
-Observable.schedulers = schedulers
+ObservableR.operators = operators
+ObservableR.schedulers = schedulers
 
-export default Observable;
+export default ObservableR as ObservableRep;

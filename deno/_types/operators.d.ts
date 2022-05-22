@@ -1,5 +1,4 @@
-import type Observable from './'
-import type { Operator } from './'
+import type { Observable, Operator, Observer } from "./mod.ts"
 
 /**
  * Returns a new observable that runs both observable in order.

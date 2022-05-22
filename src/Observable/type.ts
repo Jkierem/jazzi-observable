@@ -1,3 +1,4 @@
+import { Observable, Observer, Subscription } from "../_types"
 import { getInternal, once, sequence } from "../_internals"
 import { asyncScheduler, asapScheduler, syncScheduler } from "./schedulers"
 
@@ -24,7 +25,7 @@ const ObservableType = () => (cases,_globals) => {
         observer = next;
       }
 
-      const unsub = once(this.get()({...identityObserver,...observer}))
+      const unsub = once(this.get()({...identityObserver,...observer})) as any
       unsub.unsubscribe = unsub
       return unsub
     }
@@ -47,17 +48,17 @@ const ObservableType = () => (cases,_globals) => {
       })
     }
   
-    cases.Observable.prototype.collect = function(){
-        return new cases.Observable(sub => {
-          const data = [];
+    cases.Observable.prototype.collect = function<A>(this: Observable<A>){
+        return new cases.Observable((sub: any) => {
+          const data = [] as A[];
           return this.subscribe({
-            next: (d) => data.push(d),
+            next: (d: A) => { data.push(d) },
             complete: () => {
               sub.next(data)
               sub.complete()
             },
             error: sub.error
-          })
+          } as unknown as Observer<A>)
         })
     }
   
@@ -112,7 +113,7 @@ const ObservableType = () => (cases,_globals) => {
   
     cases.Observable.prototype.takeWhile = function(pred){
       return new cases.Observable(sub => {
-        let condition = true;
+        let condition: any = true;
         const unsub = this.subscribe({
           next: (x) => {
             condition &= pred(x);
@@ -130,16 +131,17 @@ const ObservableType = () => (cases,_globals) => {
       })
     }
   
-    cases.Observable.prototype.takeLast = function(n) {
-      return new cases.Observable(sub => {
-        const queue = []
-        const enqueue = x => {
+    cases.Observable.prototype.takeLast = function<A>(this: Observable<A>, n: number) {
+      return new cases.Observable((sub: Observer<any>) => {
+        const queue = [] as A[]
+        const enqueue = (x: A) => {
           queue.push(x)
           if( queue.length > n ){
             queue.shift()
           }
         }
         let innerUnsub = () => {}
+        
         const unsub = this.subscribe({
           next: enqueue,
           complete: () => {
@@ -151,7 +153,7 @@ const ObservableType = () => (cases,_globals) => {
             }).subscribe(sub)
           },
           error: sub.error
-        })
+        } as Observer<A>)
         return () => {
           unsub();
           innerUnsub()
@@ -198,11 +200,11 @@ const ObservableType = () => (cases,_globals) => {
     }
 
     cases.Observable.prototype.mergeAll = function(){
-      let unsubs = []
+      let unsubs = [] as Subscription[];
       return new cases.Observable(sub => {
         const unsub = this.subscribe({
           ...sub,
-          next: (x) => {
+          next: (x: any) => {
             const cleanup = x.subscribe({ next: getInternal(sub).next })
             unsubs.push(cleanup)
           },
@@ -216,9 +218,9 @@ const ObservableType = () => (cases,_globals) => {
       return this.map(fn).mergeAll()
     }
 
-    cases.Observable.prototype.concatAll = function(){
+    cases.Observable.prototype.concatAll = function<A>(this: Observable<Observable<A>>){
       const unsubs = new Set()
-      const queue = []
+      const queue = [] as Observable<any>[]
 
       const sequenceObservable = (x,sub) => {
         const unsub = x.subscribe({
@@ -248,7 +250,7 @@ const ObservableType = () => (cases,_globals) => {
         })
         return () => {
           unsub();
-          unsubs.forEach(fn => fn())
+          unsubs.forEach((fn: any) => fn())
         }
       })
     }
@@ -258,7 +260,7 @@ const ObservableType = () => (cases,_globals) => {
     }
 
     cases.Observable.prototype.switchAll = function(){
-      let current = undefined
+      let current: any = undefined
 
       const sequenceObservable = (x,sub) => {
         const unsub = x.subscribe({
@@ -294,7 +296,7 @@ const ObservableType = () => (cases,_globals) => {
     }
 
     cases.Observable.prototype.exhaust = function(){
-      let current = undefined
+      let current: any = undefined
 
       return new cases.Observable(sub => {
         const unsub = this.subscribe({
@@ -323,8 +325,8 @@ const ObservableType = () => (cases,_globals) => {
 
     cases.Observable.prototype.combineAll = function(){
       return new cases.Observable(sub => {
-        const observables = []
-        const unsubs = []
+        const observables = [] as Observable<any>[]
+        const unsubs = [] as Subscription[]
 
         this.subscribe({
           next: x => observables.push(x),
@@ -355,7 +357,7 @@ const ObservableType = () => (cases,_globals) => {
       return new cases.Observable(sub => {
         let latest = undefined
         let emitted = false;
-        const unsubs = []
+        const unsubs = [] as Subscription[]
         unsubs.push(obs.subscribe({
           next: (x) => {
             emitted = true;

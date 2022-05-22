@@ -1,48 +1,54 @@
 import { Thenable, ThenableOf } from 'jazzi/dist/Union/thenable';
 
-export declare type Scheduler = {
+export type Scheduler = {
     runTask: (fn: () => void) => void;
 }
 
-export declare interface Subscription {
+export interface Subscription {
     (): void
     unsubscribe(): void
 }
 
-export declare type Operator<T,U> = (inputObservable: Observable<T>) => Observable<U>;
+export type Operator<T,U> = (inputObservable: Observable<T>) => Observable<U>;
 
-export declare type Observer<T> = {
-    next: (n: T) => void;
-    complete?: () => void;
-    error?: (e: Error) => void;
+export type Observer<T=unknown, E=unknown> = {
+    next: (...args: [T] extends [never] ? [] : [n: T]) => void;
+    complete: () => void;
+    error: (...e: [E] extends [never] ? []: [e: E]) => void;
 }
 
-declare type PartialEventTarget<T> = {
+export type PartialObserver<T=unknown, E=unknown> = {
+    next: (...args: [T] extends [never] ? [] : [n: T]) => void;
+    complete?: () => void;
+    error?: (...e: [E] extends [never] ? []: [e: E]) => void;
+}
+
+export type PartialEventTarget<T> = {
     addEventListener: (event: string, handler: (e: T) => void) => void;
     removeEventListener: (event: string, handler: (e: T) => void) => void;
 }
 
-declare interface  Observable<A> extends Thenable<A, unknown> {
+export interface Observable<A,E = unknown> extends Thenable<A, E> {
     /**
      * Subscribes to an observable starting its' excecution.
      */
-    run(observer?: Observer<A>): Subscription;
+    run(observer?: PartialObserver<A>): Subscription;
     run(next?: (next: A) => void, error?: (e: any) => void, complete?: () => void): Subscription;
     /**
      * Subscribes to an observable starting its' excecution.
      */
-    unsafeRun(observer?: Observer<A>): Subscription;
+    unsafeRun(observer?: PartialObserver<A>): Subscription;
     unsafeRun(next?: (next: A) => void, error?: (e: any) => void, complete?: () => void): Subscription;
     /**
      * Subscribes to an observable starting its' excecution.
      */
-    subscribe(observer?: Observer<A>): Subscription;
+    subscribe(observer?: PartialObserver<A>): Subscription;
     subscribe(next?: (next: A) => void, error?: (e: any) => void, complete?: () => void): Subscription;
     /**
      * Returns a new observable that runs both observable in order.
      * @param nextObservable
      */
-    sequence<U>(nextObservable: Observable<U>): Observable<A | U>;
+    sequence<U,E0>(nextObservable: Observable<U,E0>): Observable<A | U, E | E0>;
     /**
      * Applies operators to the observable in argument order
      */
@@ -58,173 +64,167 @@ declare interface  Observable<A> extends Thenable<A, unknown> {
     /**
      * Applies operators to the observable in argument order. Seriously? More than 9? What are you doing man! Use method chainning!
      */
-    pipe(...ops: Operator<any,any>[]): Observable<any>;
+    pipe(...ops: Operator<any,any>[]): Observable<any, unknown>;
     /**
      * Returns a new observable that collects all the next calls in an array, calling next
      * with the array when the observable completes. *The source observable must complete*
      */
-    collect(): Observable<A[]>;
+    collect(): Observable<A[],E>;
     /**
      * Returns a new observable with an auditor. The auditor defines when the observer gets notified
      * with the latest value of the audited observable. This function makes more sense if both 
      * observables are async.
      * @param auditor 
      */
-    audit(auditor: Observable<A>): Observable<A>;
+    audit(auditor: Observable<A,never>): Observable<A,E>;
     /**
      * Returns a new observable with an auditor that is based on a timing to notify the observer
      * @param t time between audits/next calls
      */
-    auditTime(t: number): Observable<A>;
+    auditTime(t: number): Observable<A,E>;
     /**
      * Returns a new observable that runs an effect everytime it emits without altering the value. Used to run effects
      * @param eff function to call on next
      */
-    tap(eff: (data: A) => void): Observable<A>;
+    tap(eff: (data: A) => void): Observable<A,E>;
     /**
      * Returns a new observable that runs an effect everytime it emits without altering the value. Used to run effects
      * @param eff function to call on next
      */
-    peak(eff: (data: A) => void): Observable<A>;
+    peak(eff: (data: A) => void): Observable<A,E>;
     /**
      * Returns a new observable that completes after `n` next calls or until complete is called on it.
      */
-    take(n: number): Observable<A>;
+    take(n: number): Observable<A,E>;
     /**
      * Returns a new observable that runs while a condition holds and completes when that condition is not met.
      * @param predicate 
      */
-    takeWhile(predicate: (a: A) => boolean): Observable<A>
+    takeWhile(predicate: (a: A) => boolean): Observable<A,E>
     /**
      * Returns a new observable that collects the last n calls to next in an array. *Requires the observable to complete* 
      * @param n number of calls to next
      */
-    takeLast(n: number): Observable<A>;
+    takeLast(n: number): Observable<A,E>;
     /**
      * Returns a new observable that returns the same values as the source observable until the other observable returns
      * @param stop 
      */
-    takeUntil(stop: Observable<any>): Observable<A>
+    takeUntil(stop: Observable<any>): Observable<A,E>
     /**
      * Returns a new observable that ignores the first n calls to next.
      * @param skips 
      */
-    skip(skips: number): Observable<A>;
+    skip(skips: number): Observable<A,E>;
     /**
      * Maps all emitted values to a single value
      * @param fn 
      */
-    mapTo<U>(data: U): Observable<U>
+    mapTo<U>(data: U): Observable<U,E>
     /**
      * Maps an observable
      * @param fn 
      */
-    map<U>(fn: (data: A) => U): Observable<U>
+    map<U>(fn: (data: A) => U): Observable<U,E>
     /**
      * Returns a new observable that only emits values that pass the predicate
      * @param predicate 
      */
-    filter(predicate: (data: A) => boolean): Observable<A>
+    filter(predicate: (data: A) => boolean): Observable<A,E>
     /**
      * Maps an observable
      * @param fn 
      */
-    fmap<U>(fn: (data: A) => U): Observable<U>
+    fmap<U>(fn: (data: A) => U): Observable<U,E>
     /**
      * Returns a new flat observable that returns all the emitted values of the emitted observables. 
      * Must be called on an observable of observables
      */
-    mergeAll(): A extends Observable<infer U> ? Observable<U> : never
+    mergeAll(): A extends Observable<infer U, infer E0> ? Observable<U,E|E0> : never
     /**
      * Returns a new flat observable that returns all the emitted values of the emitted observables. 
      * Must be called on an observable of observables
      */
-    flat(): A extends Observable<infer U> ? Observable<U> : never
+    flat(): A extends Observable<infer U, infer E0> ? Observable<U,E|E0> : never
     /**
      * Returns a new flat observable that returns all the emitted values of the emitted observables. 
      * Must be called on an observable of observables
      */
-    join(): A extends Observable<infer U> ? Observable<U> : never
+    join(): A extends Observable<infer U, infer E0> ? Observable<U,E|E0> : never
     /**
      * Returns a new observable that flattens all the observables created with `fn`
      * using mergeAll
      * @param fn 
      */
-    mergeMap<B>(fn: (a: A) => Observable<B>): Observable<B>;
+    mergeMap<B,E0>(fn: (a: A) => Observable<B,E0>): Observable<B,E|E0>;
     /**
      * Returns a new observable that flattens all the observables created with `fn`
      * using mergeAll
      * @param fn 
      */
-    flatMap<B>(fn: (a: A) => Observable<B>): Observable<B>;
+    flatMap<B,E0>(fn: (a: A) => Observable<B,E0>): Observable<B, E|E0>;
     /**
      * Returns a new observable that flattens all the observables created with `fn`
      * using mergeAll
      * @param fn 
      */
-    bind<B>(fn: (a: A) => Observable<B>): Observable<B>;
-    /**
-     * Returns a new observable that flattens all the observables created with `fn`
-     * using mergeAll
-     * @param fn 
-     */
-    chain<B>(fn: (a: A) => Observable<B>): Observable<B>;
+    chain<B,E0>(fn: (a: A) => Observable<B,E0>): Observable<B,E|E0>;
     /**
      * Returns a new observable that is the sequence of all emitted observables. 
      * No observables starts before the previous has completed 
      */
-    concatAll(): A extends Observable<infer B> ? Observable<B> : never;
+    concatAll(): A extends Observable<infer B, infer E0> ? Observable<B,E|E0> : never;
     /**
      * Returns a new observable that combines all emitted observables using concatAll
      * @param fn 
      */
-    concatMap<B>(fn: (a: A) => Observable<B>): Observable<B>;
+    concatMap<B,E0>(fn: (a: A) => Observable<B,E0>): Observable<B,E|E0>;
     /**
      * Returns a new observable that is the sequence of all emitted observables. 
      * If an observable starts before the previous completes, then the previous is
      * unsubscribed. 
      */
-    switchAll(): A extends Observable<infer B> ? Observable<B> : never
+    switchAll(): A extends Observable<infer B, infer E0> ? Observable<B,E|E0> : never
     /**
      * Returns a new observable that combines all emitted observables using switchAll
      * @param fn 
      */
-    switchMap<B>(fn: (a: A) => Observable<B>): Observable<B>;
+    switchMap<B,E0>(fn: (a: A) => Observable<B,E0>): Observable<B,E|E0>;
     /**
      * Returns a new observables that combines all emitted observables by ignoring emitted
      * values from other observables while the current observable is executing. When that observable
      * completes then it will allow another observable to emit values and take the place of current
      * observable. If an observable starts while another is executing, then that observable is skipped.
      */
-    exhaust(): A extends Observable<infer B> ? Observable<B> : never
+    exhaust(): A extends Observable<infer B, infer E0> ? Observable<B,E|E0> : never
     /**
      * Returns a new observable that combines all emitted observables using exhaust
      * @param fn 
      */
-    exhaustMap<B>(fn: (a: A) => Observable<B>): Observable<B>;
+    exhaustMap<B,E0>(fn: (a: A) => Observable<B,E0>): Observable<B,E|E0>;
     /**
      * Returns a new observable than flattens all emitted observables by collecting all emitted 
      * values in an array. It waits for all observables to be created and then every time one
      * observable emits, it emits an array of all the latest values
      */
-    combineAll(): A extends Observable<infer B> ? Observable<B[]> : never
+    combineAll(): A extends Observable<infer B, infer E0> ? Observable<B[],E|E0> : never
     /**
      * Returns a new observable that emits the latest values of both observables
      * @param other 
      */
-    withLatestFrom<B>(other: Observable<B>): Observable<[A,B]>;
+    withLatestFrom<B,E0>(other: Observable<B,E0>): Observable<[A,B],E | E0>;
     /**
      * Returns a new observable with an async scheduler
      */
-    async(): Observable<A>;
+    async(): Observable<A,E>;
     /**
      * Returns a new observable with an asap scheduler
      */
-    asap(): Observable<A>;
+    asap(): Observable<A,E>;
     /**
      * Returns a new observable with a sync scheduler
      */
-    sync(): Observable<A>;
+    sync(): Observable<A,E>;
     /**
      * Returns a promise that resolves upon first next or complete event and rejects upon error event
      */
@@ -232,47 +232,49 @@ declare interface  Observable<A> extends Thenable<A, unknown> {
     /**
      * Returns a thenable object that resolves upon first next or complete event and rejects upon error event
      */
-    toThenable(): ThenableOf<A, unknown>;
+    toThenable(): ThenableOf<A, E>;
     /**
       * Returns a new observable that will call the passed function on unsubscribe, after the original unsubscribe callback if any.
       * Receives the observer to trigger extra events on unsubscribe. It is still subject to normal observable contract constraints
      * @param fn 
      */
-    cleanup(fn: (observer: Observer<A>) => void): Observable<A>;
+    cleanup(fn: (observer: Observer<A,E>) => void): Observable<A,E>;
     /**
      * Returns a new observable that will call the passed function on complete, after the original complete callback if any.
      * @param fn 
      */
-    after(fn: () => void): Observable<A>;
+    after(fn: () => void): Observable<A,E>;
     /**
      * Returns a new observable that will call the passed function on error, after the original error callback if any.
      * @param fn 
      */
-    error(fn: (e: any) => void): Observable<A>;
+    error(fn: (e: E) => void): Observable<A,E>;
     /**
-     * Returns a new observable that on error, will used to passed function run a new observable. The function receives the original 
+     * Returns a new observable that on error, will use the passed function to run a new observable. The function receives the original 
      * observable for retrying
      * @param fn 
      */
-    catchError(fn: (e: any, observable: Observable<A>) => void): Observable<A>;
+    catchError(fn: (e: E, observable: Observable<A,E>) => void): Observable<A>;
 }
 
-import * as schedulers from './schedulers'
-import * as operators from './operators'
+import { Schedulers } from './schedulers'
+import { Operators } from './operators'
 
-declare const Observable: {
+export interface ObservableRep {
     /**
      * Create an observable from arguments with the default sync scheduler
      * @param args 
      */
-    of<T>(...args: T[]): Observable<T>;
+    of<T>(...args: T[]): Observable<T,never>;
     /**
      * Create an observable from a subscribe function. The function will be called
      * when subscribe is called on the observable. If it returns a cleanup function,
      * it will be called on unsubscribe. The default scheduler is sync scheduler. 
      * @param fn 
      */
-    from<T>(fn: (observer: Observer<T>) => void, scheduler?: Scheduler): Observable<T>;
+    from(fn: (observer: Observer<never,never>) => void, scheduler?: Scheduler): Observable<never>;
+    from<T>(fn: (observer: Observer<T,never>) => void, scheduler?: Scheduler): Observable<T>;
+    from<T,E>(fn: (observer: Observer<T,E>) => void, scheduler?: Scheduler): Observable<T>;
     /**
      * Create an observable from a subscribe function. The function will be called
      * when subscribe is called on the observable. If it returns a cleanup function,
@@ -291,7 +293,7 @@ declare const Observable: {
      * Creates an observable from the passed array. Will call next with each item of the array
      * @param xs 
      */
-    fromArray<T>(xs: T[], scheduler?: Scheduler): Observable<T>;
+    fromArray<T>(xs: T[], scheduler?: Scheduler): Observable<T, never>;
     /**
      * Creates an observable from an event. Receives the event target and event name. 
      * @param target 
@@ -315,9 +317,6 @@ declare const Observable: {
      * Returns an observable that immediately completes
      */
     complete(): Observable<never>;
-    operators: typeof operators,
-    schedulers: typeof schedulers,
+    operators: Operators,
+    schedulers: Schedulers,
 }
-
-export default Observable;
-export {};
