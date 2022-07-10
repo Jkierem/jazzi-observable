@@ -1,5 +1,5 @@
-import Observable from "../Observable";
-import { Spy } from "../_internals/spy";
+import Observable from "../../src/Observable";
+import { Spy } from "../../src/_internals/spy";
 
 const createMockObservable = (creator) => {
   const nextSpy = Spy()
@@ -278,17 +278,17 @@ describe("Observable", () => {
 
     describe("Thenable Observable", () => {
       it("should resolve to first value on next", async () => {
-        const value = await Observable.of(42)
+        const value = await Observable.of(42).toThenable()
         expect(value).toBe(42)
       })
 
       it("should resolve to undefined on complete", async () => {
-        const value = await Observable.from(({ complete }) => complete())
+        const value = await Observable.from(({ complete }) => complete()).toThenable()
         expect(value).toBe(undefined)
       })
 
       it("should reject to error on error", async () => {
-        await expect(Observable.throwError(42)).rejects.toBe(42)
+        await expect(Observable.throwError(42).toThenable()).rejects.toBe(42)
       })
 
       it("should return a promise that resolves", async () => {
@@ -303,7 +303,7 @@ describe("Observable", () => {
       it("should call onresolve function", () => {
         const resSpy = Spy()
         const rejSpy = Spy()
-        Observable.of(42).then(resSpy,rejSpy)
+        Observable.of(42).toThenable().then(resSpy,rejSpy)
         expect(resSpy.calledWith(42)).toBeTruthy()
         expect(rejSpy.called).toBeFalsy()
       })
@@ -311,20 +311,20 @@ describe("Observable", () => {
       it("should call onreject function", () => {
         const resSpy = Spy()
         const rejSpy = Spy()
-        Observable.throwError(42).then(resSpy,rejSpy)
+        Observable.throwError(42).toThenable().then(resSpy,rejSpy)
         expect(rejSpy.calledWith(42)).toBeTruthy()
         expect(resSpy.called).toBeFalsy()
       })
 
       it("should call onreject function using catch", () => {
         const rejSpy = Spy()
-        Observable.throwError(42).catch(rejSpy)
+        Observable.throwError(42).toThenable().catch(rejSpy)
         expect(rejSpy.calledWith(42)).toBeTruthy()
       })
 
       it("should call onresolve once", () => {
         const resSpy = Spy()
-        Observable.of(42,43,44).then(resSpy)
+        Observable.of(42,43,44).toThenable().then(resSpy)
         expect(resSpy.callCount).toBe(1)
         expect(resSpy.calledWith(42)).toBeTruthy()
       })
