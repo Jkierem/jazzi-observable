@@ -1,5 +1,5 @@
 import Observable from "../../src/Observable";
-import type { Observable as Obs } from "../../src/types";
+import type { Observable as Obs } from "../../src/_types";
 import { Spy } from "../utils/spy";
 
 const createMockObservable = <T>(creator: () => Obs<T>) => {

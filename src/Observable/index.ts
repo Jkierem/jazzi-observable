@@ -4,23 +4,23 @@ import ObservableType from './type'
 import * as schedulers from './schedulers'
 import * as operators from './operators'
 
-import type { Observable, ObservableRep } from '../_types'
+import type { Observable, ObservableRep, Observer } from '../_types'
 
 const { syncScheduler } = schedulers
 
-const wrapObserver = (observer,scheduler=syncScheduler) => {
+const wrapObserver = (observer: any, scheduler=syncScheduler) => {
   let running = true;
   return {
     get [Internal](){
       return observer
     },
-    unsubscribe(cleanup){ 
+    unsubscribe(cleanup: () => void){ 
       running = false;
       if( typeof cleanup === "function" ){
         cleanup();
       }
     },
-    next(...args){
+    next(...args: any[]){
       if( running ){
         scheduler.runTask(() => observer.next(...args));
       }
@@ -33,7 +33,7 @@ const wrapObserver = (observer,scheduler=syncScheduler) => {
         })
       }
     },
-    error(...args){
+    error(...args: any[]){
       if( running ){
         scheduler.runTask(() => {
           running = false;
@@ -43,13 +43,13 @@ const wrapObserver = (observer,scheduler=syncScheduler) => {
     }
   }
 }
-const createWrapper = (subFn,scheduler) => {
-  const subscribe = (observer) => {
+const createWrapper = (subFn: any, scheduler: any) => {
+  const subscribe = (observer: any) => {
     const wrapper = wrapObserver(observer,scheduler);
     const cleanup = subFn(wrapper);
     return () => wrapper.unsubscribe(cleanup)
   }
-  subscribe[Internal] = subFn
+  ;(subscribe as any)[Internal] = subFn
   return subscribe
 }
 
@@ -65,7 +65,7 @@ const defs = {
   },
   overrides: {
     chain: {
-      Observable(this: Observable<any>, fn){
+      Observable(this: Observable<any>, fn: any){
         return this.mergeMap(fn)
       }
     },
@@ -75,13 +75,13 @@ const defs = {
       }
     },
     run: {
-      Observable(this: Observable<any>,...args){
+      Observable(this: Observable<any>, ...args: any[]){
         return this.subscribe(...args)
       }
     },
     fmap: {
-      Observable(this: Observable<any>, fn){
-        return ObservableR.Observable(sub => {
+      Observable(this: Observable<any>, fn: any){
+        return ObservableR.Observable((sub: Observer<any>) => {
           return this.subscribe({
             next: (x) => sub.next(fn(x)),
             complete: () => sub.complete(),
@@ -91,8 +91,8 @@ const defs = {
       }
     },
     filter: {
-      Observable(this: Observable<any>, pred){
-        return ObservableR.Observable(sub => {
+      Observable(this: Observable<any>, pred: (a: any) => boolean){
+        return ObservableR.Observable((sub: Observer<any>) => {
           return this.subscribe({
             next: (x) => pred(x) && sub.next(x),
             complete: () => sub.complete(),
@@ -104,11 +104,11 @@ const defs = {
     toThenable: {
       Observable(this: Observable<any>){
         return {
-          then: (onRes, onRej) => {
-            const resolveOnce = once(onRes)
+          then: (onRes: (x: any) => void, onRej: () => void) => {
+            const resolveOnce = once(onRes) as () => void
             this.take(1).subscribe(resolveOnce, onRej, resolveOnce)
           },
-          catch(onRej){
+          catch(onRej: () => void){
             this.then(x => x, onRej)
           }
         }
@@ -123,9 +123,9 @@ const defs = {
 }
 
 const fromArrayImpl = (self: any, xs: any, scheduler?: any) => {
-  return self.Observable(sub => {
+  return self.Observable((sub: Observer<any>) => {
     try {
-      xs.forEach(x => sub.next(x))
+      xs.forEach((x: any) => sub.next(x))
       sub.complete()
     } catch(e) {
       sub.error(e)
@@ -157,7 +157,7 @@ const ObservableR: any = Union({
       return this.Observable(fn,scheduler)
     },
     fromPromise(this: any, p){
-      return this.Observable(sub => {
+      return this.Observable((sub: { next: any; error: any; complete: any }) => {
         p
         .then(sub.next)
         .catch(sub.error)
@@ -168,14 +168,14 @@ const ObservableR: any = Union({
        return fromArrayImpl(this,xs,scheduler)
     },
     fromEvent(this:any, target: any, event?: any){
-      return this.Observable(sub => {
-        const handler = e => sub.next(e)
+      return this.Observable((sub: { next: (arg0: any) => any }) => {
+        const handler = (e: unknown) => sub.next(e)
         target.addEventListener(event,handler)
         return () => target.removeEventListener(event,handler)
       })
     },
-    interval(this: any, n: number, fn=x=>x){
-      return this.Observable(sub => {
+    interval(this: any, n: number, fn=(x: unknown)=>x){
+      return this.Observable((sub: { next: (arg0: any) => void }) => {
         let i = 0
         const id = setInterval(() => {
           sub.next(fn(i))
@@ -185,10 +185,10 @@ const ObservableR: any = Union({
       })
     },
     throwError(this:any, err){ 
-      return this.Observable(sub => sub.error(typeof err === "function" ? err() : err)) 
+      return this.Observable((sub: { error: (arg0: any) => any }) => sub.error(typeof err === "function" ? err() : err)) 
     },
     complete(this:any){ 
-      return this.Observable(sub => sub.complete()) 
+      return this.Observable((sub: { complete: () => any }) => sub.complete()) 
     }
   },
 })

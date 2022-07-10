@@ -33,6 +33,8 @@
         "test": "rm -rf ./coverage && jest --coverage --verbose",
         "test:silent": "rm -rf ./coverage && jest --silent",
         "test:watch": "jest --verbose --watch",
+        "test:deno": "deno run ./deno/Observable/mod.ts",
+        "verify": "yarn build:deno && yarn test:deno",
         "prepublish": "yarn clean && yarn build"
     }
 }
