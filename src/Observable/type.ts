@@ -18,7 +18,11 @@ type Cases = Record<"Observable", new (obserser: (obs: Observer) => () => void, 
 
 const ObservableType = () => (cases: Cases) => {
     cases.Observable.prototype.pipe = function(...ops: Operator<any, any>[]){
-        return ops.reduce((observable,operator) => operator(observable),this)
+      return ops.reduce((observable,operator) => operator(observable),this)
+    }
+
+    cases.Observable.prototype.refine = function(fn: any){
+      return this.filter(fn)
     }
     
     cases.Observable.prototype.subscribe = function(next: AnyFn0, error: AnyFn0, complete: Signal){

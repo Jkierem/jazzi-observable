@@ -1,3 +1,16 @@
 node_modules/
 dist/
 coverage/
+_internals
+_types
+Observable
+constructors.d.ts
+constructors.js
+index.d.ts
+index.js
+operators.d.ts
+operators.js
+schedulers.d.ts
+schedulers.js
+type.d.ts
+type.js

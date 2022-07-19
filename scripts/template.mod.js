@@ -31,15 +31,6 @@ const fixImports = (data) => {
     const isImplicitIndex = path === "./" || path === "."
     const isJazzi = path.startsWith("jazzi")
 
-    // console.log({
-    //   path,
-    //   isFile,
-    //   isFolder,
-    //   isUrl,
-    //   isImplicitIndex,
-    //   isJazzi,
-    // })
-
     let ret = path;
     if( isUrl ){
       ret = path.match(/.[t]s;$/gm) ? `from "${path}";` : `from "${path}.ts";`
@@ -62,8 +53,6 @@ const fixImports = (data) => {
         fin = ret
           .replace("jazzi", `from "https://deno.land/x/jazzi@v3.0.4/mod.ts";`)
       }
-        
-      // console.log({ path, fin })
       return fin
     }
     return ret

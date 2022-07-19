@@ -140,6 +140,11 @@ export interface Operators {
      */
     filter: <A>(predicate: (data: A) => boolean) => Operator<A,A>;
     /**
+     * Returns a new observable that only emits values that pass the predicate
+     * @param predicate 
+     */
+    refine: <A,T extends A>(predicate: (data: A) => data is T) => Operator<A,T>;
+    /**
      * Returns a new observable that flattens all the observables created with `fn`
      * using mergeAll
      * @param fn 

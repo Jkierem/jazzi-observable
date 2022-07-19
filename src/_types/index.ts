@@ -131,6 +131,12 @@ export interface Observable<A,E = unknown> extends Thenable<A, E> {
      * @param predicate 
      */
     filter(predicate: (data: A) => boolean): Observable<A,E>
+    filter<T extends A>(predicate: (data: A) => data is T): Observable<T, E>
+    /**
+     * Returns a new observable that only emits values that pass the predicate
+     * @param predicate 
+     */
+    refine<T extends A>(predicate: (data: A) => data is T): Observable<T, E>
     /**
      * Maps an observable
      * @param fn 
