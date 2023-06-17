@@ -41,7 +41,7 @@
         "prepublish": "yarn clean && yarn build && yarn move"
     },
     "dependencies": {
-        "jazzi": "latest"
+        "jazzi": "3.0.7"
     },
     "devDependencies": {
         "@types/jest": "^27.0.1",
